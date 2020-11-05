@@ -36,7 +36,12 @@ public class TcpClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
         }
         IdleStateEvent idleEvent = (IdleStateEvent) evt;
         if (idleEvent.state().equals(IdleState.WRITER_IDLE)) {
-            ctx.writeAndFlush(Unpooled.copiedBuffer("userEventTriggered 客户端心跳", CharsetUtil.UTF_8));
+            ctx.channel().eventLoop().execute(new Runnable() {
+                @Override
+                public void run() {
+                    ctx.channel().writeAndFlush(Unpooled.copiedBuffer("userEventTriggered 客户端心跳", CharsetUtil.UTF_8));
+                }
+            });
         }
         /*
          * 如果心跳请求发出30秒内没收到响应，则关闭连接

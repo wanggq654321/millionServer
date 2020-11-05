@@ -16,18 +16,25 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 @ChannelHandler.Sharable
 public class TcpCountHandler extends ChannelInboundHandlerAdapter {
 
     public static AtomicInteger atomicInteger = new AtomicInteger();
     public Map<String, Channel> sessions = new ConcurrentHashMap<>();
+    public static AtomicLong atomicIntegerQPS = new AtomicLong();
+    long lastQ = 0;
 
 
     public TcpCountHandler() {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
-            System.out.println("当前连接数为 = " + atomicInteger.get() + " sessions: " + sessions.size());
-        }, 0, 3, TimeUnit.SECONDS);
+            long currentQ = atomicIntegerQPS.get();
+            long qps = (long) ((currentQ - lastQ) / 5f);
+            lastQ = currentQ;
+
+            System.out.println("当前连接数为 = " + atomicInteger.get() + " sessions: " + sessions.size() + "  QPS: " + qps);
+        }, 0, 5, TimeUnit.SECONDS);
     }
 
     @Override
@@ -38,9 +45,19 @@ public class TcpCountHandler extends ChannelInboundHandlerAdapter {
 //        System.out.println("服务端收到数据: " + data.toString(CharsetUtil.UTF_8));
         // ctx.fireChannelRead(data);   //调用下个handler
 
-        ByteBuf data = (ByteBuf) msg;
-        data.writeBytes("服务器返回心跳".getBytes());
-        ctx.writeAndFlush(data);
+//        ByteBuf data = (ByteBuf) msg;
+//        data.writeBytes("服务器返回心跳".getBytes());
+//        ctx.writeAndFlush(data);
+
+        ctx.channel().eventLoop().execute(new Runnable() {
+            @Override
+            public void run() {
+                ByteBuf data = (ByteBuf) msg;
+                data.writeBytes("服务器返回心跳".getBytes());
+                ctx.channel().writeAndFlush(data);
+            }
+        });
+        atomicIntegerQPS.incrementAndGet();
     }
 
     @Override

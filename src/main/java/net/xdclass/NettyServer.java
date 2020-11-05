@@ -36,8 +36,8 @@ public class NettyServer {
     public void run(int beginPort, int endPort) {
         System.out.println("服务端启动中");
         //配置服务端线程组
-        EventLoopGroup bossGroup = new NioEventLoopGroup();
-        EventLoopGroup workGroup = new NioEventLoopGroup();
+        EventLoopGroup bossGroup = new NioEventLoopGroup(54);
+        EventLoopGroup workGroup = new NioEventLoopGroup(108);
 
         ServerBootstrap serverBootstrap = new ServerBootstrap();
         serverBootstrap.group(bossGroup, workGroup)
