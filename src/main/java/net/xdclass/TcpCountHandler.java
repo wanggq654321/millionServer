@@ -21,7 +21,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TcpCountHandler extends ChannelInboundHandlerAdapter {
 
     public static AtomicInteger atomicInteger = new AtomicInteger();
-
     public Map<String, Channel> sessions = new ConcurrentHashMap<>();
 
 
@@ -33,20 +32,14 @@ public class TcpCountHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        //第一种
-        //Channel channel = ctx.channel();
-        //channel.writeAndFlush(Unpooled.copiedBuffer("小滴课堂 xdclass.net",CharsetUtil.UTF_8));
-
-        //第二种
-        //ChannelPipeline channelPipeline = ctx.pipeline();
-        //channelPipeline.writeAndFlush(Unpooled.copiedBuffer("小滴课堂 xdclass.net",CharsetUtil.UTF_8));
-
-        //第三种
-        ctx.writeAndFlush(Unpooled.copiedBuffer("小滴课堂 xdclass.net", CharsetUtil.UTF_8));
+        // 第三种
+        // ctx.writeAndFlush(Unpooled.copiedBuffer("小滴课堂 xdclass.net", CharsetUtil.UTF_8));
+//        ByteBuf data = (ByteBuf) msg;
+//        System.out.println("服务端收到数据: " + data.toString(CharsetUtil.UTF_8));
+        // ctx.fireChannelRead(data);   //调用下个handler
 
         ByteBuf data = (ByteBuf) msg;
-        System.out.println("服务端收到数据: " + data.toString(CharsetUtil.UTF_8));
-        // ctx.fireChannelRead(data);   //调用下个handler
+        data.writeBytes("服务器返回心跳".getBytes());
         ctx.writeAndFlush(data);
     }
 
@@ -62,27 +55,6 @@ public class TcpCountHandler extends ChannelInboundHandlerAdapter {
         atomicInteger.decrementAndGet();
         sessions.remove(ctx.channel().id().asLongText());
     }
-
-    @Override
-    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
-        if (!(evt instanceof IdleStateEvent)) {
-            return;
-        }
-        IdleStateEvent idleEvent = (IdleStateEvent) evt;
-        /*
-         * 如果心跳请求发出30秒内没收到响应，则关闭连接
-         */
-        if (idleEvent.state().equals(IdleState.READER_IDLE) && ctx.channel().attr(AttributeKey.valueOf("heartbeat")) != null) {
-            Long lastTime = (Long) ctx.channel().attr(AttributeKey.valueOf("heartbeat")).get();
-            if (lastTime == null) lastTime = 0L;
-            if (lastTime != null && System.currentTimeMillis() - lastTime >= 5 * 60 * 1000) {
-                // LOGGER.info("userEventTriggered 服务器心跳超时 关闭链接 2222 ： " + (System.currentTimeMillis() - lastTime) / 1000 + "  秒:  " + ctx.toString());
-                // ctx.channel().close();
-            }
-            ctx.channel().attr(AttributeKey.valueOf("heartbeat")).set(null);
-        }
-    }
-
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
