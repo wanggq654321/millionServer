@@ -42,7 +42,7 @@ public class NettyClient {
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast(new IdleStateHandler(120, 120, 0, TimeUnit.SECONDS));
+                        ch.pipeline().addLast(new IdleStateHandler(10, 10, 0, TimeUnit.SECONDS));
                         ch.pipeline().addLast(echoClientHandler);
                         // System.out.println("服务器地址：" + ch.localAddress() + "   客户端地址：" + ch.remoteAddress());
                     }
