@@ -17,8 +17,9 @@ import java.util.concurrent.TimeUnit;
 
 public class NettyClient {
 
-
-    private static final String SERVER = "192.168.1.180";
+    private static final String SERVER = "112.81.49.112";
+//    private static final String SERVER = "316q6431t5.zicp.vip";
+//    private static final String SERVER = "192.168.1.180";
 //    private static final String SERVER = "172.17.123.50";
 
     public static void main(String[] args) {
@@ -42,29 +43,47 @@ public class NettyClient {
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast(new IdleStateHandler(10, 10, 0, TimeUnit.SECONDS));
+                        ch.pipeline().addLast(new IdleStateHandler(15, 15, 5, TimeUnit.SECONDS));
                         ch.pipeline().addLast(echoClientHandler);
                         // System.out.println("服务器地址：" + ch.localAddress() + "   客户端地址：" + ch.remoteAddress());
                     }
                 });
         int index = 0;
         int finalPort;
-        while (true) {
-            finalPort = beginPort + index;
-            try {
-                bootstrap.connect(SERVER, finalPort).addListener((ChannelFutureListener) future -> {
-                    if (!future.isSuccess()) {
-                        System.out.println("创建连接失败  " + future.cause().toString());
-                    }
-                }).get();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            ++index;
-            if (index == (endPort - beginPort)) {
-                index = 0;
+
+//        while (true) {
+//            finalPort = beginPort + index;
+//            try {
+//                bootstrap.connect(SERVER, finalPort).addListener((ChannelFutureListener) future -> {
+//                    if (!future.isSuccess()) {
+//                        System.out.println("创建连接失败  " + future.cause().toString());
+//                    }
+//                }).get();
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//            ++index;
+//            if (index == (endPort - beginPort)) {
+//                index = 0;
+//            }
+//        }
+
+
+        for (int i = beginPort; i < (beginPort + 10); i++) {
+            for (int j = 1025; j < 65536; j++) {
+                try {
+                    // bootstrap.localAddress(j);
+                    bootstrap.connect(SERVER, i).addListener((ChannelFutureListener) future -> {
+                        if (!future.isSuccess()) {
+                            System.out.println("创建连接失败  " + future.cause().toString());
+                        }
+                    }).get();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
+
 
 //        for (int i = beginPort; i < endPort; i++) {
 //            for (int j = 1025; j < 65536; j++) {

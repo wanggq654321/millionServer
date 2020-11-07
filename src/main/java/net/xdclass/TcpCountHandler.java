@@ -49,15 +49,12 @@ public class TcpCountHandler extends ChannelInboundHandlerAdapter {
 //        data.writeBytes("服务器返回心跳".getBytes());
 //        ctx.writeAndFlush(data);
 
-        ctx.channel().eventLoop().execute(new Runnable() {
-            @Override
-            public void run() {
-                ByteBuf data = (ByteBuf) msg;
-                data.writeBytes("服务器返回心跳".getBytes());
-                ctx.channel().writeAndFlush(data);
-            }
+        ctx.channel().eventLoop().execute(() -> {
+            ByteBuf data = (ByteBuf) msg;
+            data.writeBytes("服务器返回心跳".getBytes());
+            ctx.channel().writeAndFlush(data);
+            atomicIntegerQPS.incrementAndGet();
         });
-        atomicIntegerQPS.incrementAndGet();
     }
 
     @Override
